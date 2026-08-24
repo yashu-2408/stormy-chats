@@ -4,77 +4,68 @@ A cross-platform mobile chat application (iOS & Android) with automatic real-tim
 
 ---
 
-## Direct Deployment on Render (1-Click Blueprint)
+## Can You Host This Project on Netlify?
 
-This project contains a `render.yaml` configuration that sets up your backend web service and persistent disk database automatically on Render.
+**Yes, for the Web Frontend!** Here is how Netlify fits into this architecture:
 
-### Option 1: Automatic Render Deployment via Blueprint
-1. Push this repository to your GitHub account.
-2. Log into [Render Dashboard](https://dashboard.render.com).
-3. Click **New +** → **Blueprint**.
-4. Connect your GitHub repository.
-5. Render will automatically detect `render.yaml` and configure:
-   - Web Service (`server/`)
-   - Persistent Disk (`/data` for SQLite database)
-   - Auto-generated `JWT_SECRET`
-6. Click **Apply**. Once built, Render will give you your backend URL (e.g. `https://chatapp-backend.onrender.com`).
+1. **Web Frontend Client (`client/`)**:
+   - **Can be hosted on Netlify**. Netlify excels at static builds and single-page apps.
+   - We have included a `client/netlify.toml` file.
+   - When deployed to Netlify, it builds using `npx expo export -p web` and publishes the static web app.
+
+2. **Backend Server (`server/`)**:
+   - **Requires persistent WebSockets (Socket.IO) & SQLite database**, which serverless providers like Netlify Functions do not support natively for long-lived socket connections.
+   - Therefore, the backend server should be hosted on **Render**, **Railway**, or a **VPS**, while the frontend client can run on **Netlify** (or as a native mobile app built via EAS).
 
 ---
 
-### Option 2: Manual Render Deployment
-If you prefer configuring Render manually through the dashboard UI:
-1. Go to [Render Dashboard](https://dashboard.render.com) → **New +** → **Web Service**.
+## 🚀 Deployment Guide
+
+### Step 1: Deploy Backend Server (Render / Railway / VPS)
+
+#### Option A: Render 1-Click Blueprint (Recommended for Backend)
+1. Push this repository to GitHub.
+2. Log into [Render Dashboard](https://dashboard.render.com) → **New +** → **Blueprint**.
+3. Connect your repository. Render automatically reads `render.yaml` and deploys the backend server with persistent SQLite disk storage.
+4. Copy your live backend URL (e.g. `https://chatapp-backend.onrender.com`).
+
+---
+
+### Step 2: Deploy Web Frontend to Netlify
+
+1. Log into [Netlify](https://app.netlify.com) → **Add new site** → **Import an existing project**.
 2. Connect your GitHub repository.
 3. Configure settings:
-   - **Name**: `chatapp-backend`
-   - **Root Directory**: `server`
-   - **Environment**: `Node`
-   - **Build Command**: `npm install`
-   - **Start Command**: `npm start`
-4. Under **Environment Variables**, add:
-   - `PORT`: `3000`
-   - `JWT_SECRET`: *(Enter a long random secret string)*
-   - `DB_PATH`: `/data/chat.db`
-5. Under **Disks** (optional for data persistence across restarts):
-   - Add Disk: Name `sqlite-data`, Mount Path `/data`, Size `1 GB`.
-6. Click **Create Web Service**.
+   - **Base directory**: `client`
+   - **Build command**: `npx expo export -p web`
+   - **Publish directory**: `client/dist`
+4. Deploy site! Your web version of ChatApp will be live on Netlify.
+
+*Note: Remember to set your live backend URL in `client/AuthContext.js`:*
+```javascript
+export const API_URL = 'https://chatapp-backend.onrender.com/api';
+export const SOCKET_URL = 'https://chatapp-backend.onrender.com';
+```
 
 ---
 
-## Pointing Your Mobile App to Live Render URL
+### Step 3: Build Standalone Android APK for Mobile Publishing
 
-Once your Render backend service is live:
+To generate a downloadable `.apk` file for Android devices:
 
-1. Open `client/AuthContext.js`.
-2. Update the `API_URL` and `SOCKET_URL` variables with your Render URL:
-   ```javascript
-   export const API_URL = 'https://chatapp-backend.onrender.com/api';
-   export const SOCKET_URL = 'https://chatapp-backend.onrender.com';
-   ```
-
----
-
-## Building Standalone Android APK for Publishing
-
-To build the downloadable `.apk` file for Android devices or Google Play Store:
-
-1. Install Expo Application Services (EAS) CLI:
+1. Install EAS CLI:
    ```bash
    npm install -g eas-cli
    ```
 
-2. Login to your Expo Account:
-   ```bash
-   eas login
-   ```
-
-3. Trigger APK Build:
+2. Login and build:
    ```bash
    cd client
+   eas login
    eas build -p android --profile preview
    ```
 
-4. Download your `.apk` file directly from the link provided by EAS when completed.
+3. Download your completed `.apk` file from the link provided by Expo.
 
 ---
 
