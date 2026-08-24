@@ -1,6 +1,21 @@
 # ChatApp with Auto-Translation
 
-A cross-platform mobile chat application (iOS & Android) with automatic real-time message translation across 100+ languages, offline message queueing, and low operating costs ($0-$15/month).
+A cross-platform mobile chat application (iOS & Android) with automatic real-time message translation across 100+ languages, offline message queueing, and ultra-low operating costs ($0-$15/month).
+
+---
+
+## Do You Need Any External API Keys?
+
+**No paid API key is required to start running!**
+
+The app is fully self-contained out of the box:
+1. **Translation**: Uses a multi-tiered translation engine (Google Translate free GTX endpoint → MyMemory free translation endpoint → Local fallback) with SQLite database caching so translations are instant, reliable, and cost $0/month.
+2. **Push Notifications**: Uses Expo Push Notification service which is completely free.
+3. **Database & Auth**: Runs on local SQLite and JWT authentication—no external cloud DB required unless you scale up.
+
+*(Optional)*: If you want dedicated enterprise translation volume in the future, you can add a Google Cloud Translation API key or DeepL key in `server/translator.js`.
+
+---
 
 ## Features
 
@@ -15,15 +30,7 @@ A cross-platform mobile chat application (iOS & Android) with automatic real-tim
 
 ---
 
-## Tech Stack
-
-- **Mobile App**: React Native, Expo, React Navigation, Socket.IO Client, AsyncStorage.
-- **Backend Server**: Node.js, Express, Socket.IO, SQLite3 (`sqlite`), JWT, BcryptJS.
-- **Translation Engine**: Auto-detection + multi-layer translation API with SQLite local database caching.
-
----
-
-## Directory Structure
+## Project Structure
 
 ```
 ├── client/              # React Native / Expo Mobile App
@@ -49,49 +56,26 @@ A cross-platform mobile chat application (iOS & Android) with automatic real-tim
 
 ---
 
-## Getting Started
+## Local Development & Testing
 
-### Prerequisites
-
-- Node.js (v18+)
-- npm, yarn, or pnpm
-- Expo Go app on mobile OR Android Studio / Xcode simulator
-
-### 1. Run Backend Server
-
+### 1. Start Backend Server
 ```bash
 cd server
 npm install
 npm start
 ```
-*The server will run on `http://localhost:3000` and create `chat.db` automatically.*
+*The server runs on `http://localhost:3000` and creates `chat.db` automatically.*
 
-### 2. Run Mobile App
-
+### 2. Start Mobile App
 ```bash
 cd client
 npm install
-npm start
+npm run web      # For Web browser preview
+npm run android  # For Android emulator / Expo Go
+npm run ios      # For iOS simulator
 ```
 
-For web preview:
-```bash
-npm run web
-```
-
-For Android / iOS Expo Go:
-```bash
-npm run android
-# or
-npm run ios
-```
-
----
-
-## Running Tests
-
-Run the backend test suite (unit tests for translation engine & caching + integration tests for Auth & Chat APIs):
-
+### 3. Run Test Suite
 ```bash
 cd server
 npm test
@@ -99,24 +83,64 @@ npm test
 
 ---
 
-## Building Android APK for Publishing
+## Step-by-Step Guide: Hosting & Publishing APK
 
-To build a standalone Android APK (`.apk`) using Expo Application Services (EAS):
+### Step 1: Deploy Backend Server (Free / Low-Cost)
 
-1. Install EAS CLI globally:
+You can host the Node.js backend on any free or low-cost cloud server provider:
+
+#### Option A: Render.com / Railway.app (Free Tier)
+1. Push your repository to GitHub.
+2. Sign up at [Render.com](https://render.com) or [Railway.app](https://railway.app).
+3. Create a **New Web Service** pointing to the `server/` directory.
+4. Set Build Command: `npm install`
+5. Set Start Command: `npm start`
+6. Set Environment Variables:
+   - `PORT`: `3000`
+   - `JWT_SECRET`: `your-custom-secure-secret-key`
+7. Copy your deployed server URL (e.g., `https://chatapp-server.onrender.com`).
+
+#### Option B: DigitalOcean / VPS / AWS EC2 ($5/month)
+1. Clone repo onto your Linux server.
+2. Run using PM2 process manager:
+   ```bash
+   npm install -g pm2
+   cd server
+   npm install
+   pm2 start index.js --name "chatapp-server"
+   ```
+
+---
+
+### Step 2: Point Mobile App to Your Live Server
+
+In `client/AuthContext.js`, update `API_URL` and `SOCKET_URL` with your live server domain:
+
+```javascript
+export const API_URL = 'https://chatapp-server.onrender.com/api';
+export const SOCKET_URL = 'https://chatapp-server.onrender.com';
+```
+
+---
+
+### Step 3: Build Standalone Android APK for Publishing
+
+To build the downloadable `.apk` file for Android devices or Google Play Store:
+
+1. Install Expo Application Services (EAS) CLI:
    ```bash
    npm install -g eas-cli
    ```
 
-2. Login to your Expo account:
+2. Login to your Expo Account:
    ```bash
    eas login
    ```
 
-3. Trigger APK build:
+3. Build APK:
    ```bash
    cd client
    eas build -p android --profile preview
    ```
 
-The build artifact (`.apk`) will be generated automatically and downloadable from your Expo dashboard.
+4. Once completed, EAS will provide a direct download link for your standalone `.apk` file!
