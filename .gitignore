@@ -4,4 +4,3 @@ node_modules/
 **/.expo/
 *.db
 *.log
-.env
