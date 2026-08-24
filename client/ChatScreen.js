@@ -23,7 +23,7 @@ export function ChatScreen({ route, navigation }) {
 
     return () => {
       if (socketRef.current) {
-        socketRef.current.emit('leave_chat', chatId);
+        socketRef.current.emit('leave_chat', { chatId, userId: user.id });
         socketRef.current.disconnect();
       }
     };
@@ -42,7 +42,6 @@ export function ChatScreen({ route, navigation }) {
     } catch (e) {
       console.log('Failed to fetch messages, working offline:', e);
       setIsOffline(true);
-      // Load cached messages from AsyncStorage
       const cached = await AsyncStorage.getItem(`chat_msgs_${chatId}`);
       if (cached) {
         setMessages(JSON.parse(cached));
@@ -58,15 +57,13 @@ export function ChatScreen({ route, navigation }) {
     });
 
     socketRef.current.on('connect', () => {
-      socketRef.current.emit('join_chat', chatId);
-      // Flush offline queue on reconnect
+      socketRef.current.emit('join_chat', { chatId, userId: user.id });
       checkOfflineQueue();
     });
 
     socketRef.current.on('new_message', (msg) => {
       if (msg.chat_id === Number(chatId)) {
         setMessages((prev) => {
-          // Prevent duplicates
           if (prev.some(m => m.id === msg.id || (msg.client_msg_id && m.client_msg_id === msg.client_msg_id))) {
             return prev.map(m => m.client_msg_id === msg.client_msg_id ? msg : m);
           }
@@ -76,7 +73,6 @@ export function ChatScreen({ route, navigation }) {
     });
   };
 
-  // Cache messages locally
   useEffect(() => {
     if (messages.length > 0) {
       AsyncStorage.setItem(`chat_msgs_${chatId}`, JSON.stringify(messages));
@@ -148,7 +144,6 @@ export function ChatScreen({ route, navigation }) {
         }
       });
     } else {
-      // Queue offline
       const queueRaw = await AsyncStorage.getItem(`offline_queue_${chatId}`);
       const queue = queueRaw ? JSON.parse(queueRaw) : [];
       queue.push(msgPayload);
@@ -176,12 +171,10 @@ export function ChatScreen({ route, navigation }) {
         <View style={[styles.msgBubble, isMe ? styles.myBubble : styles.otherBubble]}>
           {!isMe && <Text style={styles.senderName}>{item.sender_name}</Text>}
 
-          {/* Message Content */}
           <Text style={[styles.msgText, isMe ? styles.myMsgText : styles.otherMsgText]}>
             {showOriginal || !hasTranslation ? item.text : item.translated_text}
           </Text>
 
-          {/* Translation Controls & Indicators */}
           <View style={styles.metaRow}>
             {hasTranslation && (
               <TouchableOpacity onPress={() => toggleOriginal(item.id)} style={styles.toggleBtn}>

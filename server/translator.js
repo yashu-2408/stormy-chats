@@ -31,7 +31,7 @@ async function translateText(db, messageId, text, targetLanguage, sourceLanguage
     if (response.data && response.data[0]) {
       translatedText = response.data[0].map(item => item[0]).filter(Boolean).join('');
       if (response.data[2]) {
-        detectedLang = response.data[2];
+        detectedLang = response.data[2].split('-')[0];
       }
     }
   } catch (err) {
@@ -77,7 +77,7 @@ async function detectLanguage(text) {
     const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=en&dt=t&q=${encodeURIComponent(text)}`;
     const res = await axios.get(url, { timeout: 3000 });
     if (res.data && res.data[2]) {
-      return res.data[2];
+      return res.data[2].split('-')[0];
     }
   } catch (e) {
     // Simple offline heuristic (e.g. check character ranges or default to en)
