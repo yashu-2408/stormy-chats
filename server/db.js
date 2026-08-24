@@ -1,13 +1,21 @@
 const sqlite3 = require('sqlite3');
 const { open } = require('sqlite');
 const path = require('path');
+const fs = require('fs');
 
 let dbInstance = null;
 
-async function getDb(dbPath) {
+async function getDb(dbPathOverride) {
   if (dbInstance) return dbInstance;
 
-  const targetPath = dbPath || path.join(__dirname, 'chat.db');
+  const targetPath = dbPathOverride || process.env.DB_PATH || path.join(__dirname, 'chat.db');
+
+  // Ensure parent directory exists (e.g. for Render persistent disk /data/chat.db)
+  const parentDir = path.dirname(targetPath);
+  if (!fs.existsSync(parentDir)) {
+    fs.mkdirSync(parentDir, { recursive: true });
+  }
+
   dbInstance = await open({
     filename: targetPath,
     driver: sqlite3.Database
