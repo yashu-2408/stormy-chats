@@ -1,0 +1,9 @@
+run = "npm --prefix server start"
+entrypoint = "server/index.js"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "npm --prefix server start"]
+deploymentTarget = "cloudrun"

@@ -1,83 +1,51 @@
 # ChatApp with Auto-Translation
 
-A cross-platform mobile chat application (iOS & Android) with automatic real-time message translation across 100+ languages, offline message queueing, and ultra-low operating costs ($0-$15/month).
+A mobile chat application (iOS & Android) featuring automatic real-time message translation across 100+ languages, offline message queueing, and zero-cost hosting setup via **Replit** for the backend and **EAS Build** for Android APK generation.
 
 ---
 
-## 💳 No Credit Card? 100% Free Backend Hosting Options
+## 🚀 Replit Backend Hosting Guide (100% Free, No Credit Card)
 
-If you **do not have a credit card**, you can host your backend server for **100% free without entering any payment or card details** using any of these options:
-
-### Option 1: Render.com Free Tier (No Credit Card Required)
-- **Card Required?**: ❌ No!
-- Render allows you to sign up using GitHub/Google and create free Node.js Web Services without entering credit card info.
-- **Steps**:
-  1. Log in to [Render.com](https://render.com) using your GitHub account.
-  2. Click **New +** → **Blueprint** and select this GitHub repository.
-  3. Render will deploy `render.yaml` automatically without asking for credit card details.
-  4. Copy your backend URL: `https://chatapp-backend.onrender.com`.
+### Step 1: Deploy Backend on Replit
+1. Sign up/log in at [Replit.com](https://replit.com) using your GitHub account (No credit card required).
+2. Click **Create Repl** → **Import from GitHub** → Select this repository.
+3. Replit will automatically load the `.replit` configuration.
+4. Click the **Run** button at the top. Replit will start the Node.js server and display a live HTTPS domain in the Webview panel (e.g. `https://chatapp-server.yourusername.repl.co`).
 
 ---
 
-### Option 2: Glitch / Replit (No Credit Card Required)
-- **Card Required?**: ❌ No!
-- **Glitch**:
-  1. Go to [Glitch.com](https://glitch.com) (sign up with GitHub).
-  2. Click **New Project** → **Import from GitHub** and enter your repo URL.
-  3. Glitch will give you a live HTTPS backend URL immediately (e.g., `https://my-chatapp-server.glitch.me`).
-- **Replit**:
-  1. Go to [Replit.com](https://replit.com) (sign up with GitHub).
-  2. Click **Create Repl** → **Import from GitHub**.
-  3. Hit **Run** to get your instant HTTPS URL.
+### Step 2: Connect Mobile App to Your Replit URL
+
+Open `client/AuthContext.js` and update `API_URL` and `SOCKET_URL`:
+
+```javascript
+export const API_URL = 'https://chatapp-server.yourusername.repl.co/api';
+export const SOCKET_URL = 'https://chatapp-server.yourusername.repl.co';
+```
 
 ---
 
-### Option 3: Koyeb / Zeabur (No Credit Card Required)
-- **Card Required?**: ❌ No!
-- [Koyeb](https://www.koyeb.com) and [Zeabur](https://zeabur.com) offer free Node.js hosting directly from GitHub repositories without requiring a credit card.
+### Step 3: Build Standalone Android APK for Mobile
 
----
-
-### Option 4: Self-Host via Cloudflare Tunnel (100% Free Home Hosting)
-- **Card Required?**: ❌ No!
-- You can host the backend on your own laptop/computer and expose it to the internet with a free, secure HTTPS domain using Cloudflare Tunnel:
-  1. Run the backend server locally: `cd server && npm start`
-  2. Download [Cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/):
-     ```bash
-     cloudflared tunnel --url http://localhost:3000
-     ```
-  3. Cloudflare will give you a free, public HTTPS URL (e.g. `https://random-words.trycloudflare.com`) that works worldwide on mobile devices!
-
----
-
-## 🌐 Netlify Web Frontend Hosting
-
-You can also host the **Web Frontend** on **Netlify** (100% free, no credit card needed):
-
-1. Log in to [Netlify.com](https://app.netlify.com) using GitHub.
-2. Click **Add new site** → **Import an existing project**.
-3. Set **Base directory**: `client`, **Build command**: `npx expo export -p web`, **Publish directory**: `client/dist`.
-4. Netlify will publish your web app with a free `.netlify.app` domain.
-
----
-
-## 📱 Building Standalone Android APK for Mobile
-
-To generate a downloadable `.apk` file for Android devices:
+Generate a downloadable `.apk` file for Android devices using free Expo Application Services (EAS):
 
 1. Install EAS CLI:
    ```bash
    npm install -g eas-cli
    ```
 
-2. Login and build (Free Expo account, no credit card required):
+2. Login to Expo (Free, no credit card required):
+   ```bash
+   eas login
+   ```
+
+3. Trigger Android APK build:
    ```bash
    cd client
-   eas login
    eas build -p android --profile preview
    ```
 
-3. Download your completed `.apk` file directly from the link provided by Expo.
+4. Download your `.apk` file directly from the link provided by Expo when completed.
 
 ---
 

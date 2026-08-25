@@ -1,14 +1,14 @@
 # System Architecture & Implementation Guide
 
-This document details the internal working, data flow, component architecture, and implementation mechanics of the **ChatApp with Auto-Translation**.
+This document details the system architecture, real-time message flow, component layout, and hosting configuration for **ChatApp with Auto-Translation**.
 
 ---
 
 ## Architecture Overview
 
 ChatApp uses a decoupled **Client-Server Architecture**:
-1. **Client**: Cross-platform React Native app powered by Expo. Manages local UI state, authentication persistence, Socket.IO real-time communication, offline message queueing in `AsyncStorage`, and on-demand translation toggles.
-2. **Backend**: Node.js & Express server with embedded Socket.IO engine and SQLite database. Handles user authentication, message storage, auto-language detection, translation caching, and push notification dispatch.
+1. **Client**: Cross-platform React Native app powered by Expo. Manages UI screens, authentication, Socket.IO real-time communication, offline message queueing in `AsyncStorage`, and translation toggles.
+2. **Backend**: Node.js & Express server hosted on Replit with Socket.IO and SQLite database. Handles user authentication, message storage, auto-language detection, translation caching, and push notification dispatch.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -24,7 +24,7 @@ ChatApp uses a decoupled **Client-Server Architecture**:
                             │
                             ▼
 ┌─────────────────────────────────────────────────────────┐
-│                    Node.js Server                       │
+│                    Replit Backend Server                │
 │  ┌──────────────┐   ┌───────────────┐  ┌─────────────┐  │
 │  │ Express REST │   │ Socket.IO Server│  │ Push Engine │  │
 │  └──────┬───────┘   └───────┬───────┘  └──────┬──────┘  │
@@ -60,24 +60,24 @@ ChatApp uses a decoupled **Client-Server Architecture**:
    ```javascript
    socket.emit('join_chat', { chatId, userId });
    ```
-   The server places the socket into two rooms: `chat_${chatId}` and `user_${userId}`.
+   The server places the socket into `chat_${chatId}` and `user_${userId}`.
 
 2. **Sending Messages**:
-   When a user types a message and hits send:
+   When a user sends a message:
    - An optimistic local message object with a unique `client_msg_id` is appended to state.
    - The message payload is sent to the server via socket event `send_message`:
      ```javascript
      { chatId, senderId, text, clientMsgId }
      ```
 
-3. **Backend Processing**:
+3. **Backend Processing & User-Tailored Translation**:
    - The server detects the language of `text` using `detectLanguage()`.
    - The message is inserted into the `messages` table in SQLite.
    - The server fetches all chat participants.
    - For each participant `p`:
      - If `p.preferred_language` differs from `detected_language`, the server runs `translateText()`.
      - The message payload customized with `p.preferred_language` translation is emitted to `io.to('user_' + p.id)`.
-     - If participant `p` is offline and has a registered Expo push token, `sendPushNotification()` sends an alert.
+     - If participant `p` is offline and has an Expo push token, `sendPushNotification()` dispatches an alert.
 
 ---
 
@@ -95,54 +95,30 @@ To keep translation costs at **$0/month** and response times fast:
 2. **Multi-Tier Fallback Provider**:
    - **Tier 1**: Google Translate free endpoint (`https://translate.googleapis.com/translate_a/single`).
    - **Tier 2**: MyMemory API fallback (`https://api.mymemory.translated.net/get`).
-   - **Tier 3**: Local mock fallback formatting (`[ES] Hello world`) if offline or unreachable.
+   - **Tier 3**: Local mock fallback formatting (`[ES] Hello world`) if offline.
 
 3. **Caching Result**:
-   Newly translated texts are saved to SQLite with a unique constraint on `(message_id, target_language)` to guarantee duplicate queries are never repeated.
+   Newly translated texts are saved to SQLite with a unique constraint on `(message_id, target_language)`.
 
 ---
 
 ## 4. Offline Queueing & Local Sync
 
 1. **Network Disconnection**:
-   If the socket connection drops or HTTP requests fail:
+   If internet connection drops:
    - `ChatScreen.js` activates an offline banner.
-   - Messages sent while offline are given a `pending: true` flag and appended to an offline queue stored in `AsyncStorage` (`offline_queue_${chatId}`).
+   - Messages sent while offline are saved to an offline queue in `AsyncStorage` (`offline_queue_${chatId}`).
 
 2. **Automatic Reconnection Sync**:
-   When internet or socket connectivity is re-established:
-   - Socket triggers the `'connect'` event.
-   - `checkOfflineQueue()` reads `AsyncStorage`, sends queued messages sequentially to the server, and clears the queue upon receipt confirmation.
+   When connectivity returns, Socket triggers the `'connect'` event and `checkOfflineQueue()` sends queued messages to the server.
 
 ---
 
 ## 5. Database Schema (`server/db.js`)
 
-The SQLite database (`chat.db`) contains 5 core tables:
-
-1. **`users`**:
-   - `id`, `email`, `password_hash`, `username`, `preferred_language`, `avatar`, `push_token`, `created_at`
-
-2. **`chats`**:
-   - `id`, `name`, `is_group`, `created_by`, `created_at`
-
-3. **`chat_participants`**:
-   - `chat_id`, `user_id`, `joined_at`
-
-4. **`messages`**:
-   - `id`, `chat_id`, `sender_id`, `text`, `detected_language`, `client_msg_id`, `created_at`
-
-5. **`translations`**:
-   - `id`, `message_id`, `target_language`, `translated_text`, `created_at`
-   - *Constraint*: `UNIQUE(message_id, target_language)`
-
----
-
-## 6. Frontend UI Screen Architecture
-
-- **`App.js`**: Stack Navigator handling auth-guarded routing.
-- **`AuthContext.js`**: React Context exposing `login`, `register`, `logout`, `updateUser`, and active `user` state.
-- **`LoginScreen.js` & `RegisterScreen.js`**: User login and registration forms.
-- **`ChatListScreen.js`**: List of active 1-on-1 and group chats, pull-to-refresh, modal for creating new chats or groups.
-- **`ChatScreen.js`**: Message thread, real-time message bubble renders, original/translation toggle button, language badge, timestamp, and message input.
-- **`SettingsScreen.js`**: Edit profile, avatar display, searchable 100+ language selector list.
+SQLite database (`chat.db`) schema:
+- **`users`**: `id`, `email`, `password_hash`, `username`, `preferred_language`, `avatar`, `push_token`, `created_at`
+- **`chats`**: `id`, `name`, `is_group`, `created_by`, `created_at`
+- **`chat_participants`**: `chat_id`, `user_id`, `joined_at`
+- **`messages`**: `id`, `chat_id`, `sender_id`, `text`, `detected_language`, `client_msg_id`, `created_at`
+- **`translations`**: `id`, `message_id`, `target_language`, `translated_text`, `created_at` (`UNIQUE(message_id, target_language)`)
