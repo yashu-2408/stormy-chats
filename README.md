@@ -4,52 +4,64 @@ A cross-platform mobile chat application (iOS & Android) with automatic real-tim
 
 ---
 
-## Can You Host This Project on Netlify?
+## 💳 No Credit Card? 100% Free Backend Hosting Options
 
-**Yes, for the Web Frontend!** Here is how Netlify fits into this architecture:
+If you **do not have a credit card**, you can host your backend server for **100% free without entering any payment or card details** using any of these options:
 
-1. **Web Frontend Client (`client/`)**:
-   - **Can be hosted on Netlify**. Netlify excels at static builds and single-page apps.
-   - We have included a `client/netlify.toml` file.
-   - When deployed to Netlify, it builds using `npx expo export -p web` and publishes the static web app.
-
-2. **Backend Server (`server/`)**:
-   - **Requires persistent WebSockets (Socket.IO) & SQLite database**, which serverless providers like Netlify Functions do not support natively for long-lived socket connections.
-   - Therefore, the backend server should be hosted on **Render**, **Railway**, or a **VPS**, while the frontend client can run on **Netlify** (or as a native mobile app built via EAS).
-
----
-
-## 🚀 Deployment Guide
-
-### Step 1: Deploy Backend Server (Render / Railway / VPS)
-
-#### Option A: Render 1-Click Blueprint (Recommended for Backend)
-1. Push this repository to GitHub.
-2. Log into [Render Dashboard](https://dashboard.render.com) → **New +** → **Blueprint**.
-3. Connect your repository. Render automatically reads `render.yaml` and deploys the backend server with persistent SQLite disk storage.
-4. Copy your live backend URL (e.g. `https://chatapp-backend.onrender.com`).
+### Option 1: Render.com Free Tier (No Credit Card Required)
+- **Card Required?**: ❌ No!
+- Render allows you to sign up using GitHub/Google and create free Node.js Web Services without entering credit card info.
+- **Steps**:
+  1. Log in to [Render.com](https://render.com) using your GitHub account.
+  2. Click **New +** → **Blueprint** and select this GitHub repository.
+  3. Render will deploy `render.yaml` automatically without asking for credit card details.
+  4. Copy your backend URL: `https://chatapp-backend.onrender.com`.
 
 ---
 
-### Step 2: Deploy Web Frontend to Netlify
-
-1. Log into [Netlify](https://app.netlify.com) → **Add new site** → **Import an existing project**.
-2. Connect your GitHub repository.
-3. Configure settings:
-   - **Base directory**: `client`
-   - **Build command**: `npx expo export -p web`
-   - **Publish directory**: `client/dist`
-4. Deploy site! Your web version of ChatApp will be live on Netlify.
-
-*Note: Remember to set your live backend URL in `client/AuthContext.js`:*
-```javascript
-export const API_URL = 'https://chatapp-backend.onrender.com/api';
-export const SOCKET_URL = 'https://chatapp-backend.onrender.com';
-```
+### Option 2: Glitch / Replit (No Credit Card Required)
+- **Card Required?**: ❌ No!
+- **Glitch**:
+  1. Go to [Glitch.com](https://glitch.com) (sign up with GitHub).
+  2. Click **New Project** → **Import from GitHub** and enter your repo URL.
+  3. Glitch will give you a live HTTPS backend URL immediately (e.g., `https://my-chatapp-server.glitch.me`).
+- **Replit**:
+  1. Go to [Replit.com](https://replit.com) (sign up with GitHub).
+  2. Click **Create Repl** → **Import from GitHub**.
+  3. Hit **Run** to get your instant HTTPS URL.
 
 ---
 
-### Step 3: Build Standalone Android APK for Mobile Publishing
+### Option 3: Koyeb / Zeabur (No Credit Card Required)
+- **Card Required?**: ❌ No!
+- [Koyeb](https://www.koyeb.com) and [Zeabur](https://zeabur.com) offer free Node.js hosting directly from GitHub repositories without requiring a credit card.
+
+---
+
+### Option 4: Self-Host via Cloudflare Tunnel (100% Free Home Hosting)
+- **Card Required?**: ❌ No!
+- You can host the backend on your own laptop/computer and expose it to the internet with a free, secure HTTPS domain using Cloudflare Tunnel:
+  1. Run the backend server locally: `cd server && npm start`
+  2. Download [Cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/):
+     ```bash
+     cloudflared tunnel --url http://localhost:3000
+     ```
+  3. Cloudflare will give you a free, public HTTPS URL (e.g. `https://random-words.trycloudflare.com`) that works worldwide on mobile devices!
+
+---
+
+## 🌐 Netlify Web Frontend Hosting
+
+You can also host the **Web Frontend** on **Netlify** (100% free, no credit card needed):
+
+1. Log in to [Netlify.com](https://app.netlify.com) using GitHub.
+2. Click **Add new site** → **Import an existing project**.
+3. Set **Base directory**: `client`, **Build command**: `npx expo export -p web`, **Publish directory**: `client/dist`.
+4. Netlify will publish your web app with a free `.netlify.app` domain.
+
+---
+
+## 📱 Building Standalone Android APK for Mobile
 
 To generate a downloadable `.apk` file for Android devices:
 
@@ -58,18 +70,18 @@ To generate a downloadable `.apk` file for Android devices:
    npm install -g eas-cli
    ```
 
-2. Login and build:
+2. Login and build (Free Expo account, no credit card required):
    ```bash
    cd client
    eas login
    eas build -p android --profile preview
    ```
 
-3. Download your completed `.apk` file from the link provided by Expo.
+3. Download your completed `.apk` file directly from the link provided by Expo.
 
 ---
 
-## Local Development & Testing
+## 🛠️ Local Development & Testing
 
 ### 1. Start Backend Server
 ```bash
